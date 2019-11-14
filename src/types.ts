@@ -406,3 +406,5 @@ export type TypeSystemEntry =
 export type TypeSystemValue = [string, [OperatorCode, Array<OutputType>]]
 
 export type FilterArgument = [Filter, number] | [Filter, string] | [Filter, boolean]
+
+export type CacheRef = { id: number }

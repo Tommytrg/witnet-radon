@@ -89,6 +89,33 @@ export class RadonMarkup {
     this.cachedMarkup = this.mir2markup(mir)
   }
 
+  private wrapResultInCache(result: Markup | CachedMarkupSelect | CachedMarkupSelectedOption) {
+    return this.cache.set(result)
+  }
+
+  public mir2markup(mir: Mir): CachedMarkup {
+    const aggregateScript: CachedMarkupScript = this.generateMarkupScript(mir.radRequest.aggregate)
+    const tallyScript: CachedMarkupScript = this.generateMarkupScript(mir.radRequest.tally)
+    const radRequest: CachedMarkupRequest = {
+      notBefore: mir.radRequest.notBefore,
+      retrieve: mir.radRequest.retrieve.map((source: MirSource) => {
+        let generatedMarkupScript: CachedMarkupScript = this.generateMarkupScript(source.script)
+        return {
+          url: source.url,
+          script: generatedMarkupScript,
+        } as CachedMarkupSource
+      }),
+      aggregate: aggregateScript,
+      tally: tallyScript,
+    }
+    this.cachedMarkup = {
+      name: mir.name,
+      description: mir.description,
+      radRequest,
+    } as CachedMarkup
+
+    return this.cachedMarkup
+  }
   // TODO: Remove unknown to have a stronger type
   public unwrapSource(source: CacheRef): MarkupSource {
     const cachedMarkupSource: CachedMarkupSource = (this.cache.get(
@@ -190,34 +217,6 @@ export class RadonMarkup {
       name: this.cachedMarkup.name,
       radRequest,
     }
-  }
-
-  private wrapResultInCache(result: Markup | CachedMarkupSelect | CachedMarkupSelectedOption) {
-    return this.cache.set(result)
-  }
-
-  public mir2markup(mir: Mir): CachedMarkup {
-    const aggregateScript: CachedMarkupScript = this.generateMarkupScript(mir.radRequest.aggregate)
-    const tallyScript: CachedMarkupScript = this.generateMarkupScript(mir.radRequest.tally)
-    const radRequest: CachedMarkupRequest = {
-      notBefore: mir.radRequest.notBefore,
-      retrieve: mir.radRequest.retrieve.map((source: MirSource) => {
-        let generatedMarkupScript: CachedMarkupScript = this.generateMarkupScript(source.script)
-        return {
-          url: source.url,
-          script: generatedMarkupScript,
-        } as CachedMarkupSource
-      }),
-      aggregate: aggregateScript,
-      tally: tallyScript,
-    }
-    this.cachedMarkup = {
-      name: mir.name,
-      description: mir.description,
-      radRequest,
-    } as CachedMarkup
-
-    return this.cachedMarkup
   }
 
   public generateMarkupScript(script: MirScript): CachedMarkupScript {

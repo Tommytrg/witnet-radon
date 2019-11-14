@@ -3,14 +3,9 @@ import { getEnumNames } from './utils'
 import {
   Markup,
   Mir,
-  MarkupScript,
-  MarkupRequest,
   MirSource,
-  GeneratedMarkupScript,
-  MarkupSource,
   MirScript,
   MirOperator,
-  MarkupOperator,
   OperatorInfo,
   MarkupSelect,
   MarkupType,
@@ -28,6 +23,11 @@ import {
   Filter,
   TypeSystemEntry,
   CacheRef,
+  MarkupRequest,
+  MarkupSource,
+  MarkupScript,
+  MarkupOperator,
+  MarkupArgument,
 } from './types'
 
 import { Cache, operatorInfos, typeSystem } from './structures'
@@ -47,8 +47,10 @@ type CachedMarkupSelect = {
   options: Array<MarkupOption>
   label?: string
 }
+
 type CachedMarkupOperator = CachedMarkupSelect
-type CachedMarkupScript = Array<CachedMarkupSelect>
+// type CachedMarkupScript = Array<CachedMarkupSelect>
+type CachedMarkupScript = Array<CacheRef>
 
 export type CachedMarkupRequest = {
   notBefore: number
@@ -68,16 +70,129 @@ type CachedMarkup = {
   radRequest: CachedMarkupRequest
 }
 
+type CachedMarkupSelectedOption = {
+  arguments: Array<CacheRef> | []
+  hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption
+  label: string
+  markupType: MarkupType.Option
+  outputType: OutputType | Array<OutputType>
+}
+
+type CachedArgument = MarkupInput | CachedMarkupSelect
+
 export class RadonMarkup {
-  private cache: Cache<Markup | MarkupSelectedOption>
-  private cachedMarkup: CachedMarkup
+  private cache: Cache<CachedMarkupSelectedOption | Markup | CachedArgument>
+  public cachedMarkup: CachedMarkup
 
   constructor(mir: Mir) {
     this.cache = new Cache()
     this.cachedMarkup = this.mir2markup(mir)
   }
 
-  private wrapResultInCache(result: Markup | MarkupSelectedOption) {
+  // TODO: Remove unknown to have a stronger type
+  public unwrapSource(source: CacheRef): MarkupSource {
+    const cachedMarkupSource: CachedMarkupSource = (this.cache.get(
+      source.id
+    ) as unknown) as CachedMarkupSource
+    const markupSource: MarkupSource = {
+      url: cachedMarkupSource.url,
+      script: this.unwrapScript(cachedMarkupSource.script),
+    }
+
+    return markupSource
+  }
+
+  public unwrapScript(script: Array<CacheRef>): MarkupScript {
+    const markupScript: MarkupScript = script.map(operatorRef => {
+      const cachedOperator: CachedMarkupOperator = (this.cache.get(
+        operatorRef.id
+      ) as unknown) as CachedMarkupOperator
+      const operator: MarkupOperator = this.unwrapOperator(cachedOperator, operatorRef.id)
+
+      return operator
+    })
+
+    return markupScript
+  }
+
+  public unwrapOperator(operator: CachedMarkupOperator, id: number): MarkupOperator {
+    const markup: MarkupOperator = {
+      hierarchicalType: operator.hierarchicalType,
+      id: id,
+      label: operator.label,
+      markupType: operator.markupType,
+      options: operator.options,
+      outputType: operator.outputType,
+      scriptId: operator.scriptId,
+      selected: this.unwrapSelectedOption(operator.selected),
+    }
+    return markup
+  }
+
+  public unwrapSelectedOption(selectedOption: CacheRef): MarkupSelectedOption {
+    const cachedSelectedOption: CachedMarkupSelectedOption = this.cache.get(
+      selectedOption.id
+    ) as CachedMarkupSelectedOption
+
+    const markup: MarkupSelectedOption = {
+      arguments: cachedSelectedOption.arguments.length
+        ? (cachedSelectedOption.arguments as Array<CacheRef>).map((argument: CacheRef) => {
+            return this.unwrapArgument(argument)
+          })
+        : [],
+      hierarchicalType: cachedSelectedOption.hierarchicalType,
+      label: cachedSelectedOption.hierarchicalType,
+      markupType: cachedSelectedOption.markupType,
+      outputType: cachedSelectedOption.outputType,
+    }
+
+    return markup
+  }
+
+  public unwrapArgument(arg: CacheRef): MarkupArgument {
+    const cachedArgument = (this.cache.get(arg.id) as unknown) as (CachedArgument)
+
+    switch (cachedArgument.markupType) {
+      case MarkupType.Input:
+        return {
+          hierarchicalType: cachedArgument.hierarchicalType,
+          id: arg.id,
+          label: cachedArgument.label,
+          markupType: cachedArgument.markupType,
+          value: cachedArgument.value,
+        } as MarkupInput
+      case MarkupType.Select:
+        return {
+          hierarchicalType: cachedArgument.hierarchicalType,
+          id: arg.id,
+          label: cachedArgument.label,
+          markupType: cachedArgument.markupType,
+          options: cachedArgument.options,
+          outputType: cachedArgument.outputType,
+          scriptId: cachedArgument.scriptId,
+          selected: this.unwrapSelectedOption(cachedArgument.selected),
+        } as MarkupSelect
+    }
+  }
+
+  public getMarkup(): Markup {
+    const cachedRadRequest = this.cachedMarkup.radRequest
+
+    const radRequest: MarkupRequest = {
+      notBefore: cachedRadRequest.notBefore,
+      retrieve: cachedRadRequest.aggregate.map(source => this.unwrapSource(source)),
+      aggregate: this.unwrapScript(cachedRadRequest.aggregate),
+      tally: this.unwrapScript(cachedRadRequest.tally),
+    }
+
+    return {
+      description: this.cachedMarkup.description,
+      name: this.cachedMarkup.name,
+      radRequest,
+    }
+  }
+
+  private wrapResultInCache(result: Markup | CachedMarkupSelect | CachedMarkupSelectedOption) {
     return this.cache.set(result)
   }
 
@@ -96,17 +211,18 @@ export class RadonMarkup {
       aggregate: aggregateScript,
       tally: tallyScript,
     }
-
-    return {
+    this.cachedMarkup = {
       name: mir.name,
       description: mir.description,
       radRequest,
     } as CachedMarkup
+
+    return this.cachedMarkup
   }
 
   public generateMarkupScript(script: MirScript): CachedMarkupScript {
     const markupScript: CachedMarkupScript = script.map((operator: MirOperator) => {
-      return this.generateMarkupOperator(operator)
+      return this.wrapResultInCache(this.generateMarkupOperator(operator))
     })
 
     return markupScript
@@ -134,10 +250,12 @@ export class RadonMarkup {
     operatorInfo: OperatorInfo,
     code: OperatorCode,
     args: Array<MirArgument> | null
-  ): MarkupSelectedOption {
+  ): CachedMarkupSelectedOption {
     const outputType = findOutputType(code)
-    const markupSelectedOption: MarkupSelectedOption = {
-      arguments: args ? this.generateOperatorArguments(operatorInfo, args) : [],
+    const markupSelectedOption: CachedMarkupSelectedOption = {
+      arguments: args
+        ? this.generateOperatorArguments(operatorInfo, args).map(x => this.cache.set(x))
+        : [],
       hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption,
       label: operatorInfo.name,
       markupType: MarkupType.Option,
@@ -151,8 +269,8 @@ export class RadonMarkup {
   public generateOperatorArguments(
     operatorInfo: OperatorInfo,
     args: Array<MirArgument>
-  ): Array<MarkupInput | MarkupSelect> {
-    const operatorArguments: Array<MarkupInput | MarkupSelect> = args.map(
+  ): Array<CachedArgument> {
+    const operatorArguments: Array<CachedArgument> = args.map(
       (argument: MirArgument, index: number) => {
         let argumentInfo = operatorInfo.arguments[index]
         switch (argumentInfo.type) {
@@ -184,8 +302,10 @@ export class RadonMarkup {
               options: filterArgumentOptions,
               scriptId: 0,
               label: argumentInfo.name,
-              selected: this.generateSelectedFilterArgument(argument as FilterArgument),
-            } as MarkupSelect
+              selected: this.wrapResultInCache(
+                this.generateSelectedFilterArgument(argument as FilterArgument)
+              ),
+            } as CachedMarkupSelect
           case MirArgumentKind.Reducer:
             return {
               hierarchicalType: MarkupHierarchicalType.Argument,
@@ -195,8 +315,10 @@ export class RadonMarkup {
               outputType: OutputType.Integer,
               scriptId: 0,
               label: argumentInfo.name,
-              selected: this.generateSelectedReducerArgument(argument as Reducer),
-            } as MarkupSelect
+              selected: this.wrapResultInCache(
+                this.generateSelectedReducerArgument(argument as Reducer)
+              ),
+            } as CachedMarkupSelect
         }
       }
     )

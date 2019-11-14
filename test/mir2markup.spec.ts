@@ -18,7 +18,7 @@ import { getEnumNames } from '../src/utils'
 const REDUCERS = getEnumNames(Reducer)
 const FILTERS = getEnumNames(Filter)
 
-describe('mir2markup', () => {
+describe.skip('mir2markup', () => {
   it('getMirOperatorInfo return the correct information', () => {
     expect(getMirOperatorInfo(0x10)).toStrictEqual({ code: 16, args: null })
     expect(getMirOperatorInfo([0x61, 'bpi'])).toStrictEqual({ code: 97, args: ['bpi'] })

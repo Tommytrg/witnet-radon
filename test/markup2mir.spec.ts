@@ -36,7 +36,7 @@ import {
 const REDUCERS = getEnumNames(Reducer)
 const FILTERS = getEnumNames(Filter)
 
-describe('mir2markup', () => {
+describe.skip('mir2markup', () => {
   describe('findOperatorCode should return correct code for each type', () => {
     it('boolean', () => {
       expect(

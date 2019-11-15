@@ -1,16 +1,10 @@
-import { RadonMarkup, CachedArgument } from '../src/Markup'
-import {
-  MirScript,
-  OutputType,
-  OperatorCode,
-  MirOperator,
-  MarkupType,
-  MarkupHierarchicalType,
-} from '../src/types'
+import { CachedArgument } from '../src/Markup'
+import { MirScript, OutputType, OperatorCode, MirOperator } from '../src/types'
 import { operatorInfos } from '../src/structures'
 
 describe.only('Markup', () => {
   it('generateMarkupScript', () => {
+    const { RadonMarkup } = require('../src/Markup')
     const script: MirScript = [69, 116, [97, 'bpi'], 116, [97, 'VSD'], 116, [97, 'rate_float'], 114]
     const radonMarkup = new RadonMarkup()
 
@@ -48,6 +42,8 @@ describe.only('Markup', () => {
 
   describe('expect generateMarkupOperator returns the correct markup operator', () => {
     it('without arguments', () => {
+      const { RadonMarkup } = require('../src/Markup')
+
       const radonMarkup = new RadonMarkup()
       const operatorCode = 0x11
       const args: [] = []
@@ -96,6 +92,8 @@ describe.only('Markup', () => {
     })
 
     it('with 1 argument', () => {
+      const { RadonMarkup } = require('../src/Markup')
+
       const radonMarkup = new RadonMarkup()
       const operator = [0x23, 10] as MirOperator
 
@@ -148,6 +146,8 @@ describe.only('Markup', () => {
 
   describe('generateSelectedOption', () => {
     it('without arguments', () => {
+      const { RadonMarkup } = require('../src/Markup')
+
       const radonMarkup = new RadonMarkup()
       const operatorCode = 0x21 as OperatorCode
       const args: [] = []
@@ -156,12 +156,8 @@ describe.only('Markup', () => {
       const findOutputType = (RadonMarkup.prototype.findOutputType = jest.fn(
         () => OutputType.Integer
       ))
-      const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({
-        id: 1,
-      })))
 
       const result = radonMarkup.generateSelectedOption(operatorInfo, operatorCode, args)
-      expect(wrapResultInCache).toHaveBeenCalledTimes(0)
       expect(findOutputType).toHaveBeenCalledWith(operatorCode)
       expect(result).toStrictEqual({
         arguments: [],
@@ -173,9 +169,9 @@ describe.only('Markup', () => {
     })
 
     it('with 1 argument', () => {
-      const radonMarkup = new RadonMarkup()
+      const { RadonMarkup } = require('../src/Markup')
 
-      // const operator = [0x23, 10] as MirOperator
+      const radonMarkup = new RadonMarkup()
       const operatorCode = 0x23 as OperatorCode
       const args = [10]
       const operatorInfo = operatorInfos[operatorCode]
@@ -183,22 +179,16 @@ describe.only('Markup', () => {
       const findOutputType = (RadonMarkup.prototype.findOutputType = jest.fn(
         () => OutputType.Integer
       ))
-      const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({
-        id: 1,
-      })))
+
       const argument = {
-        label: '',
         id: 1,
-        markupType: MarkupType.Input,
-        hierarchicalType: MarkupHierarchicalType.Argument,
-        value: 10,
       } as CachedArgument
+
       const generateOperatorArguments = (RadonMarkup.prototype.generateOperatorArguments = jest.fn(
         () => [argument]
       ))
 
       const result = radonMarkup.generateSelectedOption(operatorInfo, operatorCode, args)
-      expect(wrapResultInCache).toHaveBeenNthCalledWith(1, argument)
       expect(generateOperatorArguments).toHaveBeenCalledWith(operatorInfo, args)
       expect(findOutputType).toHaveBeenCalledWith(operatorCode)
       expect(result).toStrictEqual({
@@ -211,6 +201,127 @@ describe.only('Markup', () => {
     })
   })
 
-  // describe('generateOperatorArguments', () => {
-  // })
+  it.only('generateFilterArgument', () => {
+    const { RadonMarkup } = require('../src/Markup')
+
+    const radonMarkup = new RadonMarkup()
+    const filterArgs = [0x00, 1]
+
+    const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
+    const generateSelectedFilterArgumentResult = 'generateSelectedFilterArgumentResult'
+    const generateSelectedFilterArgument = (RadonMarkup.prototype.generateSelectedFilterArgument = jest.fn(
+      () => generateSelectedFilterArgumentResult
+    ))
+    const result = radonMarkup.generateFilterArgument('function', filterArgs)
+    expect(generateSelectedFilterArgument).toBeCalledWith(filterArgs)
+    expect(wrapResultInCache).toBeCalledWith(generateSelectedFilterArgumentResult)
+    expect(result).toStrictEqual({
+      hierarchicalType: 'argument',
+      id: 0,
+      label: 'function',
+      markupType: 'select',
+      options: [
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'greaterThan',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'LessThan',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'equals',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'deviationAbsolute',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'deviationRelative',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'deviationStandard',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'top',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'bottom',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'lessOrEqualThan',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'greaterOrEqualThan',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'notEquals',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'notDeviationAbsolute',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'notDeviationRelative',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'notDeviationStandard',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'notTop',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'notBottom',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+      ],
+      scriptId: 0,
+      selected: {
+        id: 1,
+      },
+    })
+  })
 })

@@ -71,6 +71,7 @@ export type MarkupOption = {
 }
 
 export interface MarkupSelectedOption {
+  // arguments: Array<MarkupInput | MarkupSelect> | []
   arguments: Array<MarkupInput | MarkupSelect> | []
   hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption
   label: string

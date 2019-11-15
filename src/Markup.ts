@@ -75,13 +75,13 @@ type CachedMarkupSelectedOption = {
 
 export type CachedArgument = MarkupInput | CachedMarkupSelect
 
+
+const filterArgumentOptions = generateFilterArgumentOptions()
+const reducerArgumentOptions = generateReducerArgumentOptions()
+
 export class RadonMarkup {
   private cache: Cache<CachedMarkupSelectedOption | Markup | CachedArgument>
   private cachedMarkup: CachedMarkup
-
-  private filterArgumentOptions = this.generateFilterArgumentOptions()
-  private reducerArgumentOptions = this.generateReducerArgumentOptions()
-
   constructor(mir?: Mir) {
     const defaultRequest = {
       description: '',
@@ -109,9 +109,7 @@ export class RadonMarkup {
     return this.cache.set(result)
   }
 
-  public unwrapResultFromCache(
-    ref: CacheRef
-  ) {
+  public unwrapResultFromCache(ref: CacheRef) {
     return this.cache.get(ref.id)
   }
 
@@ -191,10 +189,7 @@ export class RadonMarkup {
   ): CachedMarkupSelectedOption {
     const outputType = this.findOutputType(code)
     const markupSelectedOption: CachedMarkupSelectedOption = {
-      arguments:
-        args && args.length
-          ? this.generateOperatorArguments(operatorInfo, args).map(x => this.wrapResultInCache(x))
-          : [],
+      arguments: args && args.length ? this.generateOperatorArguments(operatorInfo, args) : [],
       hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption,
       label: operatorInfo.name,
       markupType: MarkupType.Option,
@@ -208,75 +203,80 @@ export class RadonMarkup {
   public generateOperatorArguments(
     operatorInfo: OperatorInfo,
     args: Array<MirArgument>
-  ): Array<CachedArgument> {
-    const operatorArguments: Array<CachedArgument> = args.map(
-      (argument: MirArgument, index: number) => {
-        let argumentInfo = operatorInfo.arguments[index]
-        switch (argumentInfo.type) {
-          // TODO: Add support for pseudotypes
-          case MirArgumentKind.Array:
-          case MirArgumentKind.Boolean:
-          case MirArgumentKind.Bytes:
-          case MirArgumentKind.Mapper:
-          case MirArgumentKind.Passthrough:
-          case MirArgumentKind.Result:
-          case MirArgumentKind.Float:
-          case MirArgumentKind.Inner:
-          case MirArgumentKind.Integer:
-          case MirArgumentKind.Map:
-          case MirArgumentKind.String:
-            return {
-              hierarchicalType: MarkupHierarchicalType.Argument,
-              id: 0,
-              label: argumentInfo.name,
-              markupType: MarkupType.Input,
-              type: argumentInfo.type,
-              value: argument,
-            } as MarkupInput
-          case MirArgumentKind.Filter:
-            return {
-              hierarchicalType: MarkupHierarchicalType.Argument,
-              id: 0,
-              markupType: MarkupType.Select,
-              options: this.filterArgumentOptions,
-              scriptId: 0,
-              label: argumentInfo.name,
-              selected: this.wrapResultInCache(
-                this.generateSelectedFilterArgument(argument as FilterArgument)
-              ),
-            } as CachedMarkupSelect
-          case MirArgumentKind.Reducer:
-            return {
-              hierarchicalType: MarkupHierarchicalType.Argument,
-              id: 0,
-              markupType: MarkupType.Select,
-              options: this.reducerArgumentOptions,
-              outputType: OutputType.Integer,
-              scriptId: 0,
-              label: argumentInfo.name,
-              selected: this.wrapResultInCache(
-                this.generateSelectedReducerArgument(argument as Reducer)
-              ),
-            } as CachedMarkupSelect
-        }
+  ): Array<CacheRef> {
+    const operatorArguments: Array<CacheRef> = args.map((argument: MirArgument, index: number) => {
+      let argumentInfo = operatorInfo.arguments[index]
+      switch (argumentInfo.type) {
+        // TODO: Add support for pseudotypes
+        case MirArgumentKind.Array:
+        case MirArgumentKind.Boolean:
+        case MirArgumentKind.Bytes:
+        case MirArgumentKind.Mapper:
+        case MirArgumentKind.Passthrough:
+        case MirArgumentKind.Result:
+        case MirArgumentKind.Float:
+        case MirArgumentKind.Inner:
+        case MirArgumentKind.Integer:
+        case MirArgumentKind.Map:
+        case MirArgumentKind.String:
+          return this.wrapResultInCache(
+            this.generateInputArgument(argument as string | number | boolean)
+          )
+        case MirArgumentKind.Filter:
+          return this.wrapResultInCache(
+            this.generateFilterArgument(argumentInfo.name, argument as FilterArgument)
+          )
+        case MirArgumentKind.Reducer:
+          return this.wrapResultInCache(
+            this.generateReducerArgument(argumentInfo.name, argument as Reducer)
+          )
       }
-    )
+    })
     return operatorArguments
   }
 
-  public generateSelectedFilterArgument(filterArgument: FilterArgument): MarkupSelectedOption {
+  public generateInputArgument(value: string | number | boolean): MarkupInput {
+    return {
+      hierarchicalType: MarkupHierarchicalType.Argument,
+      id: 0,
+      label: 'by',
+      markupType: MarkupType.Input,
+      value,
+    } as MarkupInput
+  }
+
+  public generateFilterArgument(label: string, filter: FilterArgument): CachedMarkupSelect {
+    return {
+      hierarchicalType: MarkupHierarchicalType.Argument,
+      id: 0,
+      markupType: MarkupType.Select,
+      options: filterArgumentOptions,
+      scriptId: 0,
+      label,
+      selected: this.wrapResultInCache(this.generateSelectedFilterArgument(filter)),
+    } as CachedMarkupSelect
+  }
+
+  public generateReducerArgument(label: string, reducer: Reducer): CachedMarkupSelect {
+    return {
+      hierarchicalType: MarkupHierarchicalType.Argument,
+      id: 0,
+      markupType: MarkupType.Select,
+      options: reducerArgumentOptions,
+      outputType: OutputType.Integer,
+      scriptId: 0,
+      label,
+      selected: this.wrapResultInCache(this.generateSelectedReducerArgument(reducer)),
+    } as CachedMarkupSelect
+  }
+
+  public generateSelectedFilterArgument(
+    filterArgument: FilterArgument
+  ): CachedMarkupSelectedOption {
     const filter: Filter = filterArgument[0]
     const argument = filterArgument[1]
-    const selectedArgument: MarkupSelectedOption = {
-      arguments: [
-        {
-          hierarchicalType: MarkupHierarchicalType.Argument,
-          id: 0,
-          label: 'by',
-          markupType: MarkupType.Input,
-          value: argument,
-        } as MarkupInput,
-      ],
+    const selectedArgument: CachedMarkupSelectedOption = {
+      arguments: [this.wrapResultInCache(this.generateInputArgument(argument))],
       label: Filter[filter],
       hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption,
       markupType: MarkupType.Option,
@@ -407,33 +407,6 @@ export class RadonMarkup {
         }
   }
 
-  // TODO: Call this function just at the beginning
-  public generateFilterArgumentOptions(): Array<MarkupOption> {
-    const markupOptions: Array<MarkupOption> = getEnumNames(Filter).map(name => {
-      return {
-        label: name,
-        hierarchicalType: MarkupHierarchicalType.OperatorOption,
-        markupType: MarkupType.Option,
-        // TODO: Add support for pseudotypes
-        outputType: OutputType.Bytes,
-      }
-    })
-    return markupOptions
-  }
-
-  // TODO: Call this function just at the beginning
-  public generateReducerArgumentOptions(): Array<MarkupOption> {
-    const markupOptions: Array<MarkupOption> = getEnumNames(Reducer).map(name => {
-      return {
-        label: name,
-        hierarchicalType: MarkupHierarchicalType.OperatorOption,
-        markupType: MarkupType.Option,
-        outputType: OutputType.Bytes,
-      }
-    })
-    return markupOptions
-  }
-
   public generateMarkupOptions(
     operatorInfo: OperatorInfo,
     _code: OperatorCode,
@@ -453,4 +426,31 @@ export class RadonMarkup {
 
     return markupOptions
   }
+}
+
+// TODO: Call this function just at the beginning
+function generateFilterArgumentOptions(): Array<MarkupOption> {
+  const markupOptions: Array<MarkupOption> = getEnumNames(Filter).map(name => {
+    return {
+      label: name,
+      hierarchicalType: MarkupHierarchicalType.OperatorOption,
+      markupType: MarkupType.Option,
+      // TODO: Add support for pseudotypes
+      outputType: OutputType.Bytes,
+    }
+  })
+  return markupOptions
+}
+
+// TODO: Call this function just at the beginning
+function generateReducerArgumentOptions(): Array<MarkupOption> {
+  const markupOptions: Array<MarkupOption> = getEnumNames(Reducer).map(name => {
+    return {
+      label: name,
+      hierarchicalType: MarkupHierarchicalType.OperatorOption,
+      markupType: MarkupType.Option,
+      outputType: OutputType.Bytes,
+    }
+  })
+  return markupOptions
 }

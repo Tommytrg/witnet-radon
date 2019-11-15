@@ -73,7 +73,7 @@ type CachedMarkupSelectedOption = {
   outputType: OutputType | Array<OutputType>
 }
 
-type CachedArgument = MarkupInput | CachedMarkupSelect
+export type CachedArgument = MarkupInput | CachedMarkupSelect
 
 export class RadonMarkup {
   private cache: Cache<CachedMarkupSelectedOption | Markup | CachedArgument>
@@ -103,8 +103,16 @@ export class RadonMarkup {
     this.cachedMarkup = mir ? this.mir2markup(mir) : defaultRequest
   }
 
-  public wrapResultInCache(result: Markup | CachedMarkupSelect | CachedMarkupSelectedOption) {
+  public wrapResultInCache(
+    result: Markup | CachedMarkupSelect | CachedMarkupSelectedOption | CachedArgument
+  ) {
     return this.cache.set(result)
+  }
+
+  public unwrapResultFromCache(
+    ref: CacheRef
+  ) {
+    return this.cache.get(ref.id)
   }
 
   public mir2markup(mir: Mir): CachedMarkup {
@@ -157,6 +165,7 @@ export class RadonMarkup {
     return markupScript
   }
 
+  // tested
   public generateMarkupOperator(operator: MirOperator): CachedMarkupOperator {
     const { code, args } = this.getMirOperatorInfo(operator)
     const operatorInfo: OperatorInfo = operatorInfos[code]
@@ -174,7 +183,7 @@ export class RadonMarkup {
 
     return markupOperator
   }
-
+  // tested
   public generateSelectedOption(
     operatorInfo: OperatorInfo,
     code: OperatorCode,
@@ -182,9 +191,10 @@ export class RadonMarkup {
   ): CachedMarkupSelectedOption {
     const outputType = this.findOutputType(code)
     const markupSelectedOption: CachedMarkupSelectedOption = {
-      arguments: args
-        ? this.generateOperatorArguments(operatorInfo, args).map(x => this.cache.set(x))
-        : [],
+      arguments:
+        args && args.length
+          ? this.generateOperatorArguments(operatorInfo, args).map(x => this.wrapResultInCache(x))
+          : [],
       hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption,
       label: operatorInfo.name,
       markupType: MarkupType.Option,
@@ -288,8 +298,8 @@ export class RadonMarkup {
 
   // TODO: Remove unknown to have a stronger type
   public unwrapSource(source: CacheRef): MarkupSource {
-    const cachedMarkupSource: CachedMarkupSource = (this.cache.get(
-      source.id
+    const cachedMarkupSource: CachedMarkupSource = (this.unwrapResultFromCache(
+      source
     ) as unknown) as CachedMarkupSource
     const markupSource: MarkupSource = {
       url: cachedMarkupSource.url,
@@ -301,8 +311,8 @@ export class RadonMarkup {
 
   public unwrapScript(script: Array<CacheRef>): MarkupScript {
     const markupScript: MarkupScript = script.map(operatorRef => {
-      const cachedOperator: CachedMarkupOperator = (this.cache.get(
-        operatorRef.id
+      const cachedOperator: CachedMarkupOperator = (this.unwrapResultFromCache(
+        operatorRef
       ) as unknown) as CachedMarkupOperator
       const operator: MarkupOperator = this.unwrapOperator(cachedOperator, operatorRef.id)
 
@@ -327,8 +337,8 @@ export class RadonMarkup {
   }
 
   public unwrapSelectedOption(selectedOption: CacheRef): MarkupSelectedOption {
-    const cachedSelectedOption: CachedMarkupSelectedOption = this.cache.get(
-      selectedOption.id
+    const cachedSelectedOption: CachedMarkupSelectedOption = this.unwrapResultFromCache(
+      selectedOption
     ) as CachedMarkupSelectedOption
 
     const markup: MarkupSelectedOption = {
@@ -347,7 +357,7 @@ export class RadonMarkup {
   }
 
   public unwrapArgument(arg: CacheRef): MarkupArgument {
-    const cachedArgument = (this.cache.get(arg.id) as unknown) as (CachedArgument)
+    const cachedArgument = (this.unwrapResultFromCache(arg) as unknown) as (CachedArgument)
 
     switch (cachedArgument.markupType) {
       case MarkupType.Input:

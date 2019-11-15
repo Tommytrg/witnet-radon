@@ -75,7 +75,6 @@ type CachedMarkupSelectedOption = {
 
 export type CachedArgument = MarkupInput | CachedMarkupSelect
 
-
 const filterArgumentOptions = generateFilterArgumentOptions()
 const reducerArgumentOptions = generateReducerArgumentOptions()
 
@@ -234,7 +233,7 @@ export class RadonMarkup {
     })
     return operatorArguments
   }
-
+  // tested
   public generateInputArgument(value: string | number | boolean): MarkupInput {
     return {
       hierarchicalType: MarkupHierarchicalType.Argument,
@@ -244,7 +243,7 @@ export class RadonMarkup {
       value,
     } as MarkupInput
   }
-
+  // tested
   public generateFilterArgument(label: string, filter: FilterArgument): CachedMarkupSelect {
     return {
       hierarchicalType: MarkupHierarchicalType.Argument,
@@ -256,20 +255,21 @@ export class RadonMarkup {
       selected: this.wrapResultInCache(this.generateSelectedFilterArgument(filter)),
     } as CachedMarkupSelect
   }
-
+  // tested
   public generateReducerArgument(label: string, reducer: Reducer): CachedMarkupSelect {
     return {
       hierarchicalType: MarkupHierarchicalType.Argument,
       id: 0,
       markupType: MarkupType.Select,
       options: reducerArgumentOptions,
-      outputType: OutputType.Integer,
+      outputType: OutputType.Bytes,
       scriptId: 0,
       label,
       selected: this.wrapResultInCache(this.generateSelectedReducerArgument(reducer)),
     } as CachedMarkupSelect
   }
 
+  // tested
   public generateSelectedFilterArgument(
     filterArgument: FilterArgument
   ): CachedMarkupSelectedOption {

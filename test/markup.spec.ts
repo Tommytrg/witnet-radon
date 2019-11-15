@@ -1,5 +1,13 @@
 import { CachedArgument } from '../src/Markup'
-import { MirScript, OutputType, OperatorCode, MirOperator } from '../src/types'
+import {
+  MirScript,
+  OutputType,
+  OperatorCode,
+  MirOperator,
+  Reducer,
+  MarkupHierarchicalType,
+  MarkupType,
+} from '../src/types'
 import { operatorInfos } from '../src/structures'
 
 describe.only('Markup', () => {
@@ -201,7 +209,7 @@ describe.only('Markup', () => {
     })
   })
 
-  it.only('generateFilterArgument', () => {
+  it('generateFilterArgument', () => {
     const { RadonMarkup } = require('../src/Markup')
 
     const radonMarkup = new RadonMarkup()
@@ -322,6 +330,156 @@ describe.only('Markup', () => {
       selected: {
         id: 1,
       },
+    })
+  })
+
+  it.only('generateReducerArgument', () => {
+    const { RadonMarkup } = require('../src/Markup')
+
+    const radonMarkup = new RadonMarkup()
+    const reducerCode: Reducer = 0x00
+
+    const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
+    const generateSelectedReducerArgumentResult = 'generateSelectedReducerArgumentResult'
+    const generateSelectedReducerArgument = (RadonMarkup.prototype.generateSelectedReducerArgument = jest.fn(
+      () => generateSelectedReducerArgumentResult
+    ))
+    const result = radonMarkup.generateReducerArgument('function', reducerCode)
+    expect(generateSelectedReducerArgument).toBeCalledWith(reducerCode)
+    expect(wrapResultInCache).toBeCalledWith(generateSelectedReducerArgumentResult)
+    expect(result).toStrictEqual({
+      hierarchicalType: 'argument',
+      id: 0,
+      label: 'function',
+      markupType: 'select',
+      options: [
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'min',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'max',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'mode',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'averageMean',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'averageMeanWeighted',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'averageMedian',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'averageMedianWeighted',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'deviationStandard',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'deviationAverage',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'deviationMedian',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+        {
+          hierarchicalType: 'operatorOption',
+          label: 'deviationMaximum',
+          markupType: 'option',
+          outputType: 'bytes',
+        },
+      ],
+      scriptId: 0,
+      outputType: OutputType.Bytes,
+      selected: {
+        id: 1,
+      },
+    })
+  })
+
+  it('generateInputArgument', () => {
+    const { RadonMarkup } = require('../src/Markup')
+    const value = 1
+    const radonMarkup = new RadonMarkup()
+    const result = radonMarkup.generateInputArgument(value)
+
+    expect(result).toStrictEqual({
+      hierarchicalType: MarkupHierarchicalType.Argument,
+      id: 0,
+      label: 'by',
+      markupType: MarkupType.Input,
+      value,
+    })
+  })
+
+  it('generateSelectedFilterArgument', () => {
+    const { RadonMarkup } = require('../src/Markup')
+
+    const radonMarkup = new RadonMarkup()
+    const filterArgs = [0x00, 1]
+    const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
+    const generateInputArgument = (RadonMarkup.prototype.generateInputArgument = jest.fn(
+      () => 'inputArgumentResult'
+    ))
+
+    const result = radonMarkup.generateSelectedFilterArgument(filterArgs)
+    expect(wrapResultInCache).toBeCalledWith('inputArgumentResult')
+    expect(generateInputArgument).toBeCalledWith(filterArgs[1])
+
+    expect(result).toStrictEqual({
+      arguments: [{ id: 1 }],
+      hierarchicalType: 'selectedOperatorOption',
+      label: 'greaterThan',
+      markupType: 'option',
+      outputType: 'bytes',
+    })
+  })
+
+  it.only('generateSelectedReducerArgument', () => {
+    const { RadonMarkup } = require('../src/Markup')
+
+    const radonMarkup = new RadonMarkup()
+    const reducerCode = 0x00
+
+    const result = radonMarkup.generateSelectedReducerArgument(reducerCode)
+
+    expect(result).toStrictEqual({
+      arguments: [],
+      hierarchicalType: 'selectedOperatorOption',
+      label: 'min',
+      markupType: 'option',
+      outputType: 'bytes',
     })
   })
 })

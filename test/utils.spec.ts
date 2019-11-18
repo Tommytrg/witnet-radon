@@ -1,6 +1,6 @@
 import { areSoftEqualArrays, getEnumNames, getEnumValues } from '../src/utils'
 
-describe.skip('areSoftEqualArrays', () => {
+describe('areSoftEqualArrays', () => {
   it('check if two diffrent arrays return false', () => {
     const arr1 = [1, 2]
     const arr2 = [3, 4]
@@ -38,7 +38,7 @@ describe.skip('areSoftEqualArrays', () => {
   })
 })
 
-describe.skip('getEnumNames', () => {
+describe('getEnumNames', () => {
   it('initialized', () => {
     enum Animal {
       Dog,
@@ -58,7 +58,7 @@ describe.skip('getEnumNames', () => {
   })
 })
 
-describe.skip('getEnumValues', () => {
+describe('getEnumValues', () => {
   it('initialized', () => {
     enum Animal {
       Dog = 'dog',

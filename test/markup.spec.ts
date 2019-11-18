@@ -1,4 +1,3 @@
-import { CachedArgument } from '../src/Markup'
 import {
   MirScript,
   OutputType,
@@ -7,16 +6,17 @@ import {
   Reducer,
   MarkupHierarchicalType,
   MarkupType,
+  CachedArgument,
 } from '../src/types'
 import { operatorInfos } from '../src/structures'
 
-describe('Markup', () => {
+describe('Radon', () => {
   it('generateMarkupScript', () => {
-    const { RadonMarkup } = require('../src/Markup')
+    const { Radon } = require('../src/Radon')
     const script: MirScript = [69, 116, [97, 'bpi'], 116, [97, 'VSD'], 116, [97, 'rate_float'], 114]
-    const radonMarkup = new RadonMarkup()
+    const radonMarkup = new Radon()
 
-    const generateMarkupOperator = (RadonMarkup.prototype.generateMarkupOperator = jest
+    const generateMarkupOperator = (Radon.prototype.generateMarkupOperator = jest
       .fn()
       .mockReturnValueOnce(1)
       .mockReturnValueOnce(2)
@@ -26,7 +26,7 @@ describe('Markup', () => {
       .mockReturnValueOnce(6)
       .mockReturnValueOnce(7)
       .mockReturnValueOnce(8))
-    const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn())
+    const wrapResultInCache = (Radon.prototype.wrapResultInCache = jest.fn())
     radonMarkup.generateMarkupScript(script)
 
     expect(generateMarkupOperator).toHaveBeenNthCalledWith(1, script[0])
@@ -50,27 +50,27 @@ describe('Markup', () => {
 
   describe('expect generateMarkupOperator returns the correct markup operator', () => {
     it('without arguments', () => {
-      const { RadonMarkup } = require('../src/Markup')
+      const { Radon } = require('../src/Radon')
 
-      const radonMarkup = new RadonMarkup()
+      const radonMarkup = new Radon()
       const operatorCode = 0x11
       const args: [] = []
       const operator = operatorCode
 
-      const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({
+      const wrapResultInCache = (Radon.prototype.wrapResultInCache = jest.fn(() => ({
         id: 1,
       })))
-      const generateSelectedOption = (RadonMarkup.prototype.generateSelectedOption = jest.fn())
-      const generateMarkupOptions = (RadonMarkup.prototype.generateMarkupOptions = jest.fn(
+      const generateSelectedOption = (Radon.prototype.generateSelectedOption = jest.fn())
+      const generateMarkupOptions = (Radon.prototype.generateMarkupOptions = jest.fn(
         () => []
       ))
 
-      const getMirOperatorInfo = (RadonMarkup.prototype.getMirOperatorInfo = jest.fn(() => ({
+      const getMirOperatorInfo = (Radon.prototype.getMirOperatorInfo = jest.fn(() => ({
         code: operatorCode,
         args,
       })))
 
-      const findOutputType = (RadonMarkup.prototype.findOutputType = jest.fn(
+      const findOutputType = (Radon.prototype.findOutputType = jest.fn(
         () => OutputType.Boolean
       ))
 
@@ -100,28 +100,28 @@ describe('Markup', () => {
     })
 
     it('with 1 argument', () => {
-      const { RadonMarkup } = require('../src/Markup')
+      const { Radon } = require('../src/Radon')
 
-      const radonMarkup = new RadonMarkup()
+      const radonMarkup = new Radon()
       const operator = [0x23, 10] as MirOperator
 
       const args = [10]
       const operatorCode = 0x23 as OperatorCode
 
-      const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({
+      const wrapResultInCache = (Radon.prototype.wrapResultInCache = jest.fn(() => ({
         id: 1,
       })))
-      const generateSelectedOption = (RadonMarkup.prototype.generateSelectedOption = jest.fn())
-      const generateMarkupOptions = (RadonMarkup.prototype.generateMarkupOptions = jest.fn(
+      const generateSelectedOption = (Radon.prototype.generateSelectedOption = jest.fn())
+      const generateMarkupOptions = (Radon.prototype.generateMarkupOptions = jest.fn(
         () => []
       ))
 
-      const getMirOperatorInfo = (RadonMarkup.prototype.getMirOperatorInfo = jest.fn(() => ({
+      const getMirOperatorInfo = (Radon.prototype.getMirOperatorInfo = jest.fn(() => ({
         code: operatorCode,
         args,
       })))
 
-      const findOutputType = (RadonMarkup.prototype.findOutputType = jest.fn(
+      const findOutputType = (Radon.prototype.findOutputType = jest.fn(
         () => OutputType.Integer
       ))
 
@@ -154,14 +154,14 @@ describe('Markup', () => {
 
   describe('generateSelectedOption', () => {
     it('without arguments', () => {
-      const { RadonMarkup } = require('../src/Markup')
+      const { Radon } = require('../src/Radon')
 
-      const radonMarkup = new RadonMarkup()
+      const radonMarkup = new Radon()
       const operatorCode = 0x21 as OperatorCode
       const args: [] = []
       const operatorInfo = operatorInfos[operatorCode]
 
-      const findOutputType = (RadonMarkup.prototype.findOutputType = jest.fn(
+      const findOutputType = (Radon.prototype.findOutputType = jest.fn(
         () => OutputType.Integer
       ))
 
@@ -177,14 +177,14 @@ describe('Markup', () => {
     })
 
     it('with 1 argument', () => {
-      const { RadonMarkup } = require('../src/Markup')
+      const { Radon } = require('../src/Radon')
 
-      const radonMarkup = new RadonMarkup()
+      const radonMarkup = new Radon()
       const operatorCode = 0x23 as OperatorCode
       const args = [10]
       const operatorInfo = operatorInfos[operatorCode]
 
-      const findOutputType = (RadonMarkup.prototype.findOutputType = jest.fn(
+      const findOutputType = (Radon.prototype.findOutputType = jest.fn(
         () => OutputType.Integer
       ))
 
@@ -192,7 +192,7 @@ describe('Markup', () => {
         id: 1,
       } as CachedArgument
 
-      const generateOperatorArguments = (RadonMarkup.prototype.generateOperatorArguments = jest.fn(
+      const generateOperatorArguments = (Radon.prototype.generateOperatorArguments = jest.fn(
         () => [argument]
       ))
 
@@ -210,14 +210,14 @@ describe('Markup', () => {
   })
 
   it('generateFilterArgument', () => {
-    const { RadonMarkup } = require('../src/Markup')
+    const { Radon } = require('../src/Radon')
 
-    const radonMarkup = new RadonMarkup()
+    const radonMarkup = new Radon()
     const filterArgs = [0x00, 1]
 
-    const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
+    const wrapResultInCache = (Radon.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
     const generateSelectedFilterArgumentResult = 'generateSelectedFilterArgumentResult'
-    const generateSelectedFilterArgument = (RadonMarkup.prototype.generateSelectedFilterArgument = jest.fn(
+    const generateSelectedFilterArgument = (Radon.prototype.generateSelectedFilterArgument = jest.fn(
       () => generateSelectedFilterArgumentResult
     ))
     const result = radonMarkup.generateFilterArgument('function', filterArgs)
@@ -334,14 +334,14 @@ describe('Markup', () => {
   })
 
   it('generateReducerArgument', () => {
-    const { RadonMarkup } = require('../src/Markup')
+    const { Radon } = require('../src/Radon')
 
-    const radonMarkup = new RadonMarkup()
+    const radonMarkup = new Radon()
     const reducerCode: Reducer = 0x00
 
-    const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
+    const wrapResultInCache = (Radon.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
     const generateSelectedReducerArgumentResult = 'generateSelectedReducerArgumentResult'
-    const generateSelectedReducerArgument = (RadonMarkup.prototype.generateSelectedReducerArgument = jest.fn(
+    const generateSelectedReducerArgument = (Radon.prototype.generateSelectedReducerArgument = jest.fn(
       () => generateSelectedReducerArgumentResult
     ))
     const result = radonMarkup.generateReducerArgument('function', reducerCode)
@@ -429,9 +429,9 @@ describe('Markup', () => {
   })
 
   it('generateInputArgument', () => {
-    const { RadonMarkup } = require('../src/Markup')
+    const { Radon } = require('../src/Radon')
     const value = 1
-    const radonMarkup = new RadonMarkup()
+    const radonMarkup = new Radon()
     const result = radonMarkup.generateInputArgument(value)
 
     expect(result).toStrictEqual({
@@ -444,12 +444,12 @@ describe('Markup', () => {
   })
 
   it('generateSelectedFilterArgument', () => {
-    const { RadonMarkup } = require('../src/Markup')
+    const { Radon } = require('../src/Radon')
 
-    const radonMarkup = new RadonMarkup()
+    const radonMarkup = new Radon()
     const filterArgs = [0x00, 1]
-    const wrapResultInCache = (RadonMarkup.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
-    const generateInputArgument = (RadonMarkup.prototype.generateInputArgument = jest.fn(
+    const wrapResultInCache = (Radon.prototype.wrapResultInCache = jest.fn(() => ({ id: 1 })))
+    const generateInputArgument = (Radon.prototype.generateInputArgument = jest.fn(
       () => 'inputArgumentResult'
     ))
 
@@ -467,9 +467,9 @@ describe('Markup', () => {
   })
 
   it('generateSelectedReducerArgument', () => {
-    const { RadonMarkup } = require('../src/Markup')
+    const { Radon } = require('../src/Radon')
 
-    const radonMarkup = new RadonMarkup()
+    const radonMarkup = new Radon()
     const reducerCode = 0x00
 
     const result = radonMarkup.generateSelectedReducerArgument(reducerCode)
@@ -484,14 +484,14 @@ describe('Markup', () => {
   })
 
   it('unwrapSource', () => {
-    const { RadonMarkup } = require('../src/Markup')
-    const radonMarkup = new RadonMarkup()
+    const { Radon } = require('../src/Radon')
+    const radonMarkup = new Radon()
     const cacheRef = { id: 1 }
-    const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest.fn(() => ({
+    const unwrapResultFromCache = (Radon.prototype.unwrapResultFromCache = jest.fn(() => ({
       url: 'url',
       script: [{ id: 2 }],
     })))
-    const unwrapScript = (RadonMarkup.prototype.unwrapScript = jest.fn(() => [{}]))
+    const unwrapScript = (Radon.prototype.unwrapScript = jest.fn(() => [{}]))
     const result = radonMarkup.unwrapSource(cacheRef)
 
     expect(result).toStrictEqual({ url: 'url', script: [{}] })
@@ -500,8 +500,8 @@ describe('Markup', () => {
   })
 
   it('unwrapScript', () => {
-    const { RadonMarkup } = require('../src/Markup')
-    const radonMarkup = new RadonMarkup()
+    const { Radon } = require('../src/Radon')
+    const radonMarkup = new Radon()
     const cachedScript = [{ id: 1 }, { id: 2 }]
     const cachedMarkupOperator1 = {
       id: 1,
@@ -523,11 +523,11 @@ describe('Markup', () => {
       options: [],
       label: 'label',
     }
-    const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest
+    const unwrapResultFromCache = (Radon.prototype.unwrapResultFromCache = jest
       .fn()
       .mockReturnValueOnce(cachedMarkupOperator1)
       .mockReturnValueOnce(cachedMarkupOperator2))
-    const unwrapOperator = (RadonMarkup.prototype.unwrapOperator = jest
+    const unwrapOperator = (Radon.prototype.unwrapOperator = jest
       .fn()
       .mockReturnValueOnce(3)
       .mockReturnValueOnce(4))
@@ -540,8 +540,8 @@ describe('Markup', () => {
   })
 
   it('unwrapOperator', () => {
-    const { RadonMarkup } = require('../src/Markup')
-    const radonMarkup = new RadonMarkup()
+    const { Radon } = require('../src/Radon')
+    const radonMarkup = new Radon()
     const cachedMarkupOperator = {
       id: 1,
       scriptId: 0,
@@ -572,7 +572,7 @@ describe('Markup', () => {
       label: 'label',
     }
 
-    const unwrapSelectedOption = (RadonMarkup.prototype.unwrapSelectedOption = jest.fn(
+    const unwrapSelectedOption = (Radon.prototype.unwrapSelectedOption = jest.fn(
       () => selectedOption
     ))
 
@@ -584,8 +584,8 @@ describe('Markup', () => {
 
   describe('unwrapSelectedOption', () => {
     it('with arguments', () => {
-      const { RadonMarkup } = require('../src/Markup')
-      const radonMarkup = new RadonMarkup()
+      const { Radon } = require('../src/Radon')
+      const radonMarkup = new Radon()
       const cacheRef = { id: 1 }
       const markupArgument = {
         id: 0,
@@ -608,10 +608,10 @@ describe('Markup', () => {
         markupType: MarkupType.Option,
         outputType: OutputType.Bytes,
       }
-      const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest.fn(
+      const unwrapResultFromCache = (Radon.prototype.unwrapResultFromCache = jest.fn(
         () => cachedSelectedOption
       ))
-      const unwrapArgument = (RadonMarkup.prototype.unwrapArgument = jest.fn(() => markupArgument))
+      const unwrapArgument = (Radon.prototype.unwrapArgument = jest.fn(() => markupArgument))
       const result = radonMarkup.unwrapSelectedOption(cacheRef)
 
       expect(result).toStrictEqual(selectedOption)
@@ -620,8 +620,8 @@ describe('Markup', () => {
     })
 
     it('without arguments', () => {
-      const { RadonMarkup } = require('../src/Markup')
-      const radonMarkup = new RadonMarkup()
+      const { Radon } = require('../src/Radon')
+      const radonMarkup = new Radon()
       const cacheRef = { id: 1 }
       const cachedSelectedOption = {
         arguments: [],
@@ -637,10 +637,10 @@ describe('Markup', () => {
         markupType: MarkupType.Option,
         outputType: OutputType.Bytes,
       }
-      const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest.fn(
+      const unwrapResultFromCache = (Radon.prototype.unwrapResultFromCache = jest.fn(
         () => cachedSelectedOption
       ))
-      const unwrapArgument = (RadonMarkup.prototype.unwrapArgument = jest.fn())
+      const unwrapArgument = (Radon.prototype.unwrapArgument = jest.fn())
       const result = radonMarkup.unwrapSelectedOption(cacheRef)
 
       expect(result).toStrictEqual(selectedOption)
@@ -651,8 +651,8 @@ describe('Markup', () => {
 
   describe('unwrapArgument', () => {
     it('Input type', () => {
-      const { RadonMarkup } = require('../src/Markup')
-      const radonMarkup = new RadonMarkup()
+      const { Radon } = require('../src/Radon')
+      const radonMarkup = new Radon()
       const cacheRef = { id: 1 }
 
       const inputArgument = {
@@ -663,10 +663,10 @@ describe('Markup', () => {
         value: 'value',
       }
 
-      const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest.fn(
+      const unwrapResultFromCache = (Radon.prototype.unwrapResultFromCache = jest.fn(
         () => inputArgument
       ))
-      const unwrapSelectedOption = (RadonMarkup.prototype.unwrapSelectedOption = jest.fn())
+      const unwrapSelectedOption = (Radon.prototype.unwrapSelectedOption = jest.fn())
 
       const result = radonMarkup.unwrapArgument(cacheRef)
 
@@ -676,8 +676,8 @@ describe('Markup', () => {
     })
 
     it('Select type', () => {
-      const { RadonMarkup } = require('../src/Markup')
-      const radonMarkup = new RadonMarkup()
+      const { Radon } = require('../src/Radon')
+      const radonMarkup = new Radon()
       const cacheRef = { id: 1 }
 
       const selectedOption = {
@@ -709,11 +709,11 @@ describe('Markup', () => {
         label: 'label',
       }
 
-      const unwrapSelectedOption = (RadonMarkup.prototype.unwrapSelectedOption = jest.fn(
+      const unwrapSelectedOption = (Radon.prototype.unwrapSelectedOption = jest.fn(
         () => selectedOption
       ))
 
-      const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest.fn(
+      const unwrapResultFromCache = (Radon.prototype.unwrapResultFromCache = jest.fn(
         () => cachedSelectArgument
       ))
 

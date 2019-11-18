@@ -8,5 +8,3 @@ export default {
   markup2mir,
   mir2markup,
 }
-
-

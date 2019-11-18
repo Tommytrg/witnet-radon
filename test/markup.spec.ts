@@ -61,18 +61,14 @@ describe('Radon', () => {
         id: 1,
       })))
       const generateSelectedOption = (Radon.prototype.generateSelectedOption = jest.fn())
-      const generateMarkupOptions = (Radon.prototype.generateMarkupOptions = jest.fn(
-        () => []
-      ))
+      const generateMarkupOptions = (Radon.prototype.generateMarkupOptions = jest.fn(() => []))
 
       const getMirOperatorInfo = (Radon.prototype.getMirOperatorInfo = jest.fn(() => ({
         code: operatorCode,
         args,
       })))
 
-      const findOutputType = (Radon.prototype.findOutputType = jest.fn(
-        () => OutputType.Boolean
-      ))
+      const findOutputType = (Radon.prototype.findOutputType = jest.fn(() => OutputType.Boolean))
 
       const result = radonMarkup.generateMarkupOperator(operator)
       expect(getMirOperatorInfo).toHaveBeenCalledWith(operator)
@@ -112,18 +108,14 @@ describe('Radon', () => {
         id: 1,
       })))
       const generateSelectedOption = (Radon.prototype.generateSelectedOption = jest.fn())
-      const generateMarkupOptions = (Radon.prototype.generateMarkupOptions = jest.fn(
-        () => []
-      ))
+      const generateMarkupOptions = (Radon.prototype.generateMarkupOptions = jest.fn(() => []))
 
       const getMirOperatorInfo = (Radon.prototype.getMirOperatorInfo = jest.fn(() => ({
         code: operatorCode,
         args,
       })))
 
-      const findOutputType = (Radon.prototype.findOutputType = jest.fn(
-        () => OutputType.Integer
-      ))
+      const findOutputType = (Radon.prototype.findOutputType = jest.fn(() => OutputType.Integer))
 
       const result = radonMarkup.generateMarkupOperator(operator)
       expect(getMirOperatorInfo).toHaveBeenCalledWith(operator)
@@ -161,9 +153,7 @@ describe('Radon', () => {
       const args: [] = []
       const operatorInfo = operatorInfos[operatorCode]
 
-      const findOutputType = (Radon.prototype.findOutputType = jest.fn(
-        () => OutputType.Integer
-      ))
+      const findOutputType = (Radon.prototype.findOutputType = jest.fn(() => OutputType.Integer))
 
       const result = radonMarkup.generateSelectedOption(operatorInfo, operatorCode, args)
       expect(findOutputType).toHaveBeenCalledWith(operatorCode)
@@ -184,17 +174,15 @@ describe('Radon', () => {
       const args = [10]
       const operatorInfo = operatorInfos[operatorCode]
 
-      const findOutputType = (Radon.prototype.findOutputType = jest.fn(
-        () => OutputType.Integer
-      ))
+      const findOutputType = (Radon.prototype.findOutputType = jest.fn(() => OutputType.Integer))
 
       const argument = {
         id: 1,
       } as CachedArgument
 
-      const generateOperatorArguments = (Radon.prototype.generateOperatorArguments = jest.fn(
-        () => [argument]
-      ))
+      const generateOperatorArguments = (Radon.prototype.generateOperatorArguments = jest.fn(() => [
+        argument,
+      ]))
 
       const result = radonMarkup.generateSelectedOption(operatorInfo, operatorCode, args)
       expect(generateOperatorArguments).toHaveBeenCalledWith(operatorInfo, args)

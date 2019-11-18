@@ -41,7 +41,6 @@ import {
 import { Cache, operatorInfos, typeSystem } from './structures'
 import { markup2mir } from './markup2mir'
 
-
 const filterArgumentOptions = generateFilterArgumentOptions()
 const reducerArgumentOptions = generateReducerArgumentOptions()
 

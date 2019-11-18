@@ -26,5 +26,3 @@ export function dummyHash(str: string) {
   }
   return hash
 }
-
-

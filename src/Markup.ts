@@ -343,7 +343,7 @@ export class RadonMarkup {
     }
     return markup
   }
-
+  // tested
   public unwrapSelectedOption(selectedOption: CacheRef): MarkupSelectedOption {
     const cachedSelectedOption: CachedMarkupSelectedOption = this.unwrapResultFromCache(
       selectedOption
@@ -364,6 +364,7 @@ export class RadonMarkup {
     return markup
   }
 
+  // tested
   public unwrapArgument(arg: CacheRef): MarkupArgument {
     const cachedArgument = (this.unwrapResultFromCache(arg) as unknown) as (CachedArgument)
 

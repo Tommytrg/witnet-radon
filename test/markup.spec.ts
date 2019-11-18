@@ -10,7 +10,7 @@ import {
 } from '../src/types'
 import { operatorInfos } from '../src/structures'
 
-describe.only('Markup', () => {
+describe('Markup', () => {
   it('generateMarkupScript', () => {
     const { RadonMarkup } = require('../src/Markup')
     const script: MirScript = [69, 116, [97, 'bpi'], 116, [97, 'VSD'], 116, [97, 'rate_float'], 114]
@@ -333,7 +333,7 @@ describe.only('Markup', () => {
     })
   })
 
-  it.only('generateReducerArgument', () => {
+  it('generateReducerArgument', () => {
     const { RadonMarkup } = require('../src/Markup')
 
     const radonMarkup = new RadonMarkup()
@@ -466,7 +466,7 @@ describe.only('Markup', () => {
     })
   })
 
-  it.only('generateSelectedReducerArgument', () => {
+  it('generateSelectedReducerArgument', () => {
     const { RadonMarkup } = require('../src/Markup')
 
     const radonMarkup = new RadonMarkup()
@@ -480,6 +480,143 @@ describe.only('Markup', () => {
       label: 'min',
       markupType: 'option',
       outputType: 'bytes',
+    })
+  })
+
+  it('unwrapSource', () => {
+    const { RadonMarkup } = require('../src/Markup')
+    const radonMarkup = new RadonMarkup()
+    const cacheRef = { id: 1 }
+    const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest.fn(() => ({
+      url: 'url',
+      script: [{ id: 2 }],
+    })))
+    const unwrapScript = (RadonMarkup.prototype.unwrapScript = jest.fn(() => [{}]))
+    const result = radonMarkup.unwrapSource(cacheRef)
+
+    expect(result).toStrictEqual({ url: 'url', script: [{}] })
+    expect(unwrapResultFromCache).toBeCalledWith({ id: 1 })
+    expect(unwrapScript).toBeCalledWith([{ id: 2 }])
+  })
+
+  it('unwrapScript', () => {
+    const { RadonMarkup } = require('../src/Markup')
+    const radonMarkup = new RadonMarkup()
+    const cachedScript = [{ id: 1 }, { id: 2 }]
+    const cachedMarkupOperator1 = {
+      id: 1,
+      scriptId: 0,
+      markupType: MarkupType.Select,
+      hierarchicalType: MarkupHierarchicalType.Operator,
+      outputType: OutputType.Bytes,
+      selected: { id: 8 },
+      options: [],
+      label: 'label',
+    }
+    const cachedMarkupOperator2 = {
+      id: 2,
+      scriptId: 0,
+      markupType: MarkupType.Select,
+      hierarchicalType: MarkupHierarchicalType.Operator,
+      outputType: OutputType.Bytes,
+      selected: { id: 9 },
+      options: [],
+      label: 'label',
+    }
+    const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest
+      .fn()
+      .mockReturnValueOnce(cachedMarkupOperator1)
+      .mockReturnValueOnce(cachedMarkupOperator2))
+    const unwrapOperator = (RadonMarkup.prototype.unwrapOperator = jest
+      .fn()
+      .mockReturnValueOnce(3)
+      .mockReturnValueOnce(4))
+    const result = radonMarkup.unwrapScript(cachedScript)
+
+    expect(result).toStrictEqual([3, 4])
+    expect(unwrapResultFromCache).toBeCalledTimes(2)
+    expect(unwrapOperator).toHaveBeenNthCalledWith(1, cachedMarkupOperator1, 1)
+    expect(unwrapOperator).toHaveBeenNthCalledWith(2, cachedMarkupOperator2, 2)
+  })
+
+  it('unwrapOperator', () => {
+    const { RadonMarkup } = require('../src/Markup')
+    const radonMarkup = new RadonMarkup()
+    const cachedMarkupOperator = {
+      id: 1,
+      scriptId: 0,
+      markupType: MarkupType.Select,
+      hierarchicalType: MarkupHierarchicalType.Operator,
+      outputType: OutputType.Bytes,
+      selected: { id: 8 },
+      options: [],
+      label: 'label',
+    }
+
+    const selectedOption = {
+      arguments: [],
+      hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption,
+      label: 'label',
+      markupType: MarkupType.Option,
+      outputType: OutputType.Bytes,
+    }
+
+    const markupOperator = {
+      id: 1,
+      scriptId: 0,
+      markupType: MarkupType.Select,
+      hierarchicalType: MarkupHierarchicalType.Operator,
+      outputType: OutputType.Bytes,
+      selected: selectedOption,
+      options: [],
+      label: 'label',
+    }
+
+    const unwrapSelectedOption = (RadonMarkup.prototype.unwrapSelectedOption = jest.fn(
+      () => selectedOption
+    ))
+
+    const result = radonMarkup.unwrapOperator(cachedMarkupOperator, 1)
+
+    expect(result).toStrictEqual(markupOperator)
+    expect(unwrapSelectedOption).toBeCalledWith({ id: 8 })
+  })
+
+  describe('unwrapSelectedOption', () => {
+    it('with arguments', () => {
+      const { RadonMarkup } = require('../src/Markup')
+      const radonMarkup = new RadonMarkup()
+      const cacheRef = { id: 1 }
+      const markupArgument = {
+        id: 0,
+        label: 'label',
+        markupType: MarkupType.Input,
+        hierarchicalType: MarkupHierarchicalType.Argument,
+        value: 'value',
+      }
+      const cachedSelectedOption = {
+        arguments: [{ id: 2 }],
+        hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption,
+        label: 'label',
+        markupType: MarkupType.Option,
+        outputType: OutputType.Bytes,
+      }
+      const selectedOption = {
+        arguments: [markupArgument],
+        hierarchicalType: MarkupHierarchicalType.SelectedOperatorOption,
+        label: 'label',
+        markupType: MarkupType.Option,
+        outputType: OutputType.Bytes,
+      }
+      const unwrapResultFromCache = (RadonMarkup.prototype.unwrapResultFromCache = jest.fn(
+        () => cachedSelectedOption
+      ))
+      const unwrapArgument = (RadonMarkup.prototype.unwrapArgument = jest.fn(() => markupArgument))
+      const result = radonMarkup.unwrapSelectedOption(cacheRef)
+
+      expect(result).toStrictEqual(selectedOption)
+      expect(unwrapResultFromCache).toBeCalledWith({ id: 1 })
+      expect(unwrapArgument).toBeCalledWith({ id: 2 })
     })
   })
 })

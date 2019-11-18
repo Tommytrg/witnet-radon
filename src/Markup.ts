@@ -78,6 +78,7 @@ export type CachedArgument = MarkupInput | CachedMarkupSelect
 const filterArgumentOptions = generateFilterArgumentOptions()
 const reducerArgumentOptions = generateReducerArgumentOptions()
 
+// TODO: Create factory functions to remove code repetition
 export class RadonMarkup {
   private cache: Cache<CachedMarkupSelectedOption | Markup | CachedArgument>
   private cachedMarkup: CachedMarkup
@@ -180,6 +181,7 @@ export class RadonMarkup {
 
     return markupOperator
   }
+
   // tested
   public generateSelectedOption(
     operatorInfo: OperatorInfo,
@@ -233,6 +235,7 @@ export class RadonMarkup {
     })
     return operatorArguments
   }
+
   // tested
   public generateInputArgument(value: string | number | boolean): MarkupInput {
     return {
@@ -243,6 +246,7 @@ export class RadonMarkup {
       value,
     } as MarkupInput
   }
+
   // tested
   public generateFilterArgument(label: string, filter: FilterArgument): CachedMarkupSelect {
     return {
@@ -255,6 +259,7 @@ export class RadonMarkup {
       selected: this.wrapResultInCache(this.generateSelectedFilterArgument(filter)),
     } as CachedMarkupSelect
   }
+
   // tested
   public generateReducerArgument(label: string, reducer: Reducer): CachedMarkupSelect {
     return {
@@ -285,6 +290,7 @@ export class RadonMarkup {
     return selectedArgument
   }
 
+  // tested
   public generateSelectedReducerArgument(reducer: Reducer): MarkupSelectedOption {
     const selectedArgument: MarkupSelectedOption = {
       arguments: [],
@@ -297,6 +303,7 @@ export class RadonMarkup {
   }
 
   // TODO: Remove unknown to have a stronger type
+  // tested
   public unwrapSource(source: CacheRef): MarkupSource {
     const cachedMarkupSource: CachedMarkupSource = (this.unwrapResultFromCache(
       source
@@ -308,7 +315,7 @@ export class RadonMarkup {
 
     return markupSource
   }
-
+  // tested
   public unwrapScript(script: Array<CacheRef>): MarkupScript {
     const markupScript: MarkupScript = script.map(operatorRef => {
       const cachedOperator: CachedMarkupOperator = (this.unwrapResultFromCache(
@@ -322,6 +329,7 @@ export class RadonMarkup {
     return markupScript
   }
 
+  // tested
   public unwrapOperator(operator: CachedMarkupOperator, id: number): MarkupOperator {
     const markup: MarkupOperator = {
       hierarchicalType: operator.hierarchicalType,
@@ -348,7 +356,7 @@ export class RadonMarkup {
           })
         : [],
       hierarchicalType: cachedSelectedOption.hierarchicalType,
-      label: cachedSelectedOption.hierarchicalType,
+      label: cachedSelectedOption.label,
       markupType: cachedSelectedOption.markupType,
       outputType: cachedSelectedOption.outputType,
     }
